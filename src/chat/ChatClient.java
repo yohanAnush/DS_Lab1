@@ -73,7 +73,19 @@ public class ChatClient {
              * the text area in preparation for the next message.
              */
             public void actionPerformed(ActionEvent e) {
-                out.println(textField.getText());
+                // Check if any user in the userlist is selected.
+                // If so, format the message in a way all the selected users are
+                // there in the beginning of the message, seperated by >>
+                // Example: A>>B>>Hello indicates a client is sending the message "Hello"
+                // and he/she has selected A, and B from the user list.
+                if (!activeUsersList.isSelectionEmpty()) {
+                    String users = String.join(">>", activeUsersList.getSelectedValuesList());
+                    out.println(users + ">>" + textField.getText());
+                }
+                else {
+                    out.println(textField.getText());
+                }
+                
                 textField.setText("");
             }
         });

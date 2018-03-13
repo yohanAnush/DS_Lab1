@@ -146,16 +146,6 @@ public class ChatServer {
                     // This is indicated by the notation: Receiver's_name>>The Message
                     // Example:  Anushka>>Hello  indicates that the message "Hello" should be sent to Anushka.
                     if (input.contains(">>")) {
-                        /*String specificReceiver = input.substring(0, input.indexOf(">>"));    // sequence before ">>"
-                        String specificMessage = input.substring(input.indexOf(">>") + 2);    // sequence after ">>"
-                        
-                        // print to the sender itself.
-                        out.println("MESSAGE " + name + ": " + specificMessage);
-                        
-                        // print to the specific receiver.
-                        nameAndItsWriter.get(specificReceiver).println("MESSAGE " + name + ": " + specificMessage);
-                        */
-                        
                         // All the targeted clients are denoted by its name followed by >>.
                         // Example: Messaging "Hello" to A, B and C clients will look as follows.
                         //          A>>B>>C>>Hello
@@ -164,12 +154,18 @@ public class ChatServer {
                         String [] inputContent = input.split(">>");
                         String message = inputContent[inputContent.length -1 ];
                         
-                        for (int i = 0; i < inputContent.length - 2; i++) {
+                        // print the message on sender's windows first.
+                        // it's possible to add the sender as an element of the above string array but that's too much work for now.
+                        out.println("MESSAGE " + name + ": " + message);
+                        
+                        // print to the other receipients' windows.
+                        for (int i = 0; i < inputContent.length - 1; i++) {
                             // check if the user exists in the hashmap;
                             // because since we split the input by >> even if the actual message contains >> it will be
                             // considered as another client which will result in a null pointer.
-                            nameAndItsWriter.get(inputContent[i]).println("MESSAGE " + name + ": " + input);
-                            
+                            if (nameAndItsWriter.containsKey(inputContent[i])) {
+                                nameAndItsWriter.get(inputContent[i]).println("MESSAGE " + name + ": " + message);
+                            }
                         }
                     }
                     else {
