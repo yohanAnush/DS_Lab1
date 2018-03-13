@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.StringTokenizer;
@@ -48,7 +49,7 @@ public class ChatServer {
      * Check if the client exists before adding him/her to the HashMap.
      * Add the writer when the client is added and remove the write when the client is removed.
      */
-    private static LinkedHashMap<String, PrintWriter> nameAndItsWriter = new LinkedHashMap<String, PrintWriter>();
+    private static HashMap<String, PrintWriter> nameAndItsWriter = new HashMap<String, PrintWriter>();
   
     /**
      * The application main method, which just listens on a port and
@@ -122,14 +123,7 @@ public class ChatServer {
                             nameAndItsWriter.put(name, out);
                             
                             // Send the activer users' list to every client(basically broadcast).
-                            Iterator iterator = getIterator(nameAndItsWriter);
-                            
-                            while (iterator.hasNext()) {
-                                Map.Entry me = (Map.Entry)iterator.next();
-                                
-                                nameAndItsWriter.get(me.getKey()).println("ACTIVEUSERS" + String.join(":", new ArrayList<String>(nameAndItsWriter.keySet())));
-                                //out.println("ACTIVEUSERS" + String.join(":", new ArrayList<String>(nameAndItsWriter.keySet())));
-                            }
+                            sendActiveUserListToOutputStream();
                             
                             break;
                         }
@@ -152,7 +146,7 @@ public class ChatServer {
                     // This is indicated by the notation: Receiver's_name>>The Message
                     // Example:  Anushka>>Hello  indicates that the message "Hello" should be sent to Anushka.
                     if (input.contains(">>")) {
-                        String specificReceiver = input.substring(0, input.indexOf(">>"));    // sequence before ">>"
+                        /*String specificReceiver = input.substring(0, input.indexOf(">>"));    // sequence before ">>"
                         String specificMessage = input.substring(input.indexOf(">>") + 2);    // sequence after ">>"
                         
                         // print to the sender itself.
@@ -160,14 +154,28 @@ public class ChatServer {
                         
                         // print to the specific receiver.
                         nameAndItsWriter.get(specificReceiver).println("MESSAGE " + name + ": " + specificMessage);
+                        */
+                        
+                        // All the targeted clients are denoted by its name followed by >>.
+                        // Example: Messaging "Hello" to A, B and C clients will look as follows.
+                        //          A>>B>>C>>Hello
+                        // Therefore if we split the inputstream's line by >>, the last element will be the message
+                        // and the rest will be the targeted clients.
+                        String [] inputContent = input.split(">>");
+                        String message = inputContent[inputContent.length -1 ];
+                        
+                        for (int i = 0; i < inputContent.length - 2; i++) {
+                            // check if the user exists in the hashmap;
+                            // because since we split the input by >> even if the actual message contains >> it will be
+                            // considered as another client which will result in a null pointer.
+                            nameAndItsWriter.get(inputContent[i]).println("MESSAGE " + name + ": " + input);
+                            
+                        }
                     }
                     else {
                         // broadcast to everyone.
-                        Iterator iterator = getIterator(nameAndItsWriter);
-                        while(iterator.hasNext()) {
-                            Map.Entry me = (Map.Entry)iterator.next();
-                            
-                            nameAndItsWriter.get(me.getKey()).println("MESSAGE " + name + ": " + input);
+                        for (String nameKey: nameAndItsWriter.keySet()) {
+                            nameAndItsWriter.get(nameKey).println("MESSAGE " + name + ": " + input);
                         }
                     }
                     
@@ -180,6 +188,9 @@ public class ChatServer {
                 // Remove the client name and its PrintWriter pair from the HashMap.
                 if (name != null ) {
                     nameAndItsWriter.remove(name, out);
+                    
+                    // Send the updated activer users' list to every client(basically broadcast).
+                    sendActiveUserListToOutputStream();
                 }
                 try {
                     socket.close();
@@ -189,10 +200,17 @@ public class ChatServer {
             }
         }
         
-        public Iterator getIterator(LinkedHashMap lhm) {
+        public static Iterator getIterator(LinkedHashMap lhm) {
             // To iterator over the LinkedHashMap.
             Set entrySet = lhm.entrySet();
             return entrySet.iterator();
+        }
+        
+        public static void sendActiveUserListToOutputStream() {
+            // Send the updated activer users' list to every client(basically broadcast).
+            for (String nameKey: nameAndItsWriter.keySet()) {
+                nameAndItsWriter.get(nameKey).println("ACTIVEUSERS" + String.join(":", new ArrayList<String>(nameAndItsWriter.keySet())));
+            }    
         }
     }
 

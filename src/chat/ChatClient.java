@@ -1,5 +1,6 @@
 package chat;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -59,9 +60,9 @@ public class ChatClient {
         messageArea.setEditable(false);
         activeUsersList.setBounds(0, 100, 400, 40);
         activeUsersList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        frame.getContentPane().add(activeUsersList, "South");
-        frame.getContentPane().add(textField, "North");
-        frame.getContentPane().add(new JScrollPane(messageArea), "Center");
+        frame.getContentPane().add(activeUsersList, BorderLayout.WEST);
+        frame.getContentPane().add(textField, BorderLayout.NORTH);
+        frame.getContentPane().add(new JScrollPane(messageArea), BorderLayout.CENTER);
         frame.pack();
 
         // Add Listeners
