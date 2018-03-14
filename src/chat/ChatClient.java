@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.StringTokenizer;
 import javax.swing.DefaultListModel;
+import javax.swing.JCheckBox;
 
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -43,6 +44,7 @@ public class ChatClient {
     JTextField textField = new JTextField(40);
     JTextArea messageArea = new JTextArea(8, 40);
     JList activeUsersList = new JList();
+    JCheckBox broadcastCheckBox = new JCheckBox("Broadcast to Everyone");
 
     /**
      * Constructs the client by laying out the GUI and registering a
@@ -63,8 +65,10 @@ public class ChatClient {
         frame.getContentPane().add(activeUsersList, BorderLayout.WEST);
         frame.getContentPane().add(textField, BorderLayout.NORTH);
         frame.getContentPane().add(new JScrollPane(messageArea), BorderLayout.CENTER);
+        frame.getContentPane().add(broadcastCheckBox, BorderLayout.SOUTH);
         frame.pack();
 
+        
         // Add Listeners
         textField.addActionListener(new ActionListener() {
             /**
@@ -78,7 +82,12 @@ public class ChatClient {
                 // there in the beginning of the message, seperated by >>
                 // Example: A>>B>>Hello indicates a client is sending the message "Hello"
                 // and he/she has selected A, and B from the user list.
-                if (!activeUsersList.isSelectionEmpty()) {
+                // All the above conditions must be checked only if "Broadcast to everyone" is not checked,
+                // as it overrides any notation, or selection.
+                if (broadcastCheckBox.isSelected()) {
+                    out.println(textField.getText().replaceAll(">>", ""));  // to ignore the notation of sending a message to a specific person(s).
+                }
+                else if (!activeUsersList.isSelectionEmpty()) {
                     String users = String.join(">>", activeUsersList.getSelectedValuesList());
                     out.println(users + ">>" + textField.getText());
                 }
@@ -111,6 +120,8 @@ public class ChatClient {
                                             "Choose a screen name:",
                                             "Screen name selection",
                                             JOptionPane.PLAIN_MESSAGE);
+        
+        frame.setTitle(frame.getTitle() + " (" + name + ")");   // To make is easy to findout to whom the client window belongs.
 
         return name;
     }
